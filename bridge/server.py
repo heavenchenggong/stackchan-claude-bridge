@@ -1,17 +1,21 @@
 """Claude Code Bridge MCP server.
 
-把"调用本地 Claude Code"包装成 MCP 工具，暴露给 xiaozhi-esp32-server 的 LLM。
-xiaozhi-server 的 LLM (DeepSeek/Qwen) 在用户语音里识别到知识库 / 写文章 / 复杂分析
-意图时，调用本工具，本工具 spawn `claude --print` 跑你的本地 Claude Code（带
-memory + skills + MCP），把结果返回给 LLM 让 TTS 朗读。
+把"调用本地 Claude Code"包装成 MCP 工具，暴露给 xiaozhi.me 的 LLM（DeepSeek/Qwen）。
+当用户语音里识别到「查我的知识库」「写公众号」之类需要 Claude Code 全套能力（memory +
+skills + MCP）的意图时，LLM 通过 wss MCP endpoint 调本工具，本工具 spawn
+`claude --print` 跑本地 Claude Code，把结果回流给 LLM 让 TTS 朗读。
 
-用法（xiaozhi-server data/.mcp_server_settings.json）:
-  "claude_code": {
-      "command": "/Users/I501579/Claude Code/claude-bridge-mcp/.venv/bin/python",
-      "args": ["/Users/I501579/Claude Code/claude-bridge-mcp/server.py"]
-  }
+工具清单（FastMCP 自动注册）:
+  claude_code(task)              — 默认异步，立刻回执；后台结果写 outbox/{ts}.txt
+  claude_code_quick(task)        — 同步，仅限 ≤20 秒查询
+  claude_code_background(task, summary_for_user) — 长任务异步，自定义口语回执
+  claude_code_check_results()    — 取最新 outbox，移到 done/
 
-依赖：pip install mcp
+环境变量:
+  CLAUDE_BIN              — claude 命令路径（默认 /usr/local/bin/claude，可改）
+  CLAUDE_BRIDGE_WORKDIR   — Claude Code 的工作目录（默认 ~）
+
+参考：https://github.com/heavenchenggong/stackchan-claude-bridge
 """
 from __future__ import annotations
 
@@ -25,11 +29,11 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 # ── 配置 ─────────────────────────────────────────────────────────────
-CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "/Users/I501579/.local/bin/claude")
-WORKDIR = os.environ.get(
-    "CLAUDE_BRIDGE_WORKDIR",
-    "/Users/I501579/Claude Code",
-)
+# CLAUDE_BIN: 默认 PATH 里第一个 claude，env 可覆盖
+CLAUDE_BIN = os.environ.get("CLAUDE_BIN") or os.path.expanduser("~/.local/bin/claude")
+# WORKDIR: claude --print 的 cwd，决定 Claude Code session 加载哪个项目的 memory/CLAUDE.md。
+# 默认用户 HOME（让 claude 自动 fallback 到全局 ~/.claude/）
+WORKDIR = os.environ.get("CLAUDE_BRIDGE_WORKDIR") or os.path.expanduser("~")
 # 简单查询超时 120s（Claude Code 启动 + memory 检索能跑这么久），复杂任务（写文章）允许 5 分钟
 DEFAULT_TIMEOUT_SECS = 120
 LONG_TIMEOUT_SECS = 300
