@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "claude_code": {
+      "command": "/PATH/TO/stackchan-claude-bridge/bridge/.venv/bin/python",
+      "args": ["/PATH/TO/stackchan-claude-bridge/bridge/server.py"]
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# Minimal deps for the wss → stdio bridge.
+mcp[cli]>=1.0
+websockets>=14
+python-dotenv>=1.0

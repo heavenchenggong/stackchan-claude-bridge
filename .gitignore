@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# user-specific configs (committed as .example)
+bridge/.env
+bridge/mcp_config.json
+
+# outbox runtime data
+/tmp/claude-bridge-outbox/
