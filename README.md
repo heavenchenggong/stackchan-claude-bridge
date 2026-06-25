@@ -89,7 +89,7 @@ Stack-chan 是日本网友设计的开源桌面机器人，[M5Stack 卖整套套
 
 ### 2. 烧固件到 Stack-chan
 
-我们 fork 的固件：[heavenchenggong/StackChan-XiaoZhi (codex-refactor 分支)](https://github.com/heavenchenggong/StackChan-XiaoZhi/tree/codex-refactor)
+我们的固件：[heavenchenggong/stackchan-xiaozhi-firmware](https://github.com/heavenchenggong/stackchan-xiaozhi-firmware)
 
 **改动**：
 - 加 4 个 servo MCP 工具：`self.head.move / center / nod / shake`（官方固件无）
@@ -98,7 +98,7 @@ Stack-chan 是日本网友设计的开源桌面机器人，[M5Stack 卖整套套
 
 **烧录方式**：
 
-去 [Actions 页面](https://github.com/heavenchenggong/StackChan-XiaoZhi/actions/workflows/build-cores3.yaml) 下载最新 build 产物（artifact 里有 `xiaozhi.bin` + 完整 merged-binary 等）。
+去 [Actions 页面](https://github.com/heavenchenggong/stackchan-xiaozhi-firmware/actions/workflows/build-cores3.yaml) 下载最新 build 产物（artifact 里有 `xiaozhi.bin` + 完整 merged-binary 等）。
 
 完整烧录（含 NVS 抹除，第一次烧推荐）：
 ```bash
