@@ -66,7 +66,7 @@ Stack-chan 是日本网友设计的开源桌面机器人，[M5Stack 卖整套套
 - 想让 Stack-chan 对接自己的本地知识库 / 工具，而不只是"小智 AI 默认人格"
 
 **不需要**：
-- 自己装 ESP-IDF（fork 用 GitHub Actions 自动 build，直接下 release）
+- 自己装 ESP-IDF（直接从 [Releases](https://github.com/heavenchenggong/stackchan-xiaozhi-firmware/releases/latest) 下预编译固件）
 - 自己部署 xiaozhi-server（用虾哥免费云后端就行）
 - 改 Mac 系统设置 / 装 docker / 装 Redis 等重型工具（只装一个 ~65MB 的 Python venv）
 
@@ -98,7 +98,7 @@ Stack-chan 是日本网友设计的开源桌面机器人，[M5Stack 卖整套套
 
 **烧录方式**：
 
-去 [Actions 页面](https://github.com/heavenchenggong/stackchan-xiaozhi-firmware/actions/workflows/build-cores3.yaml) 下载最新 build 产物（artifact 里有 `xiaozhi.bin` + 完整 merged-binary 等）。
+去 [Releases 页面](https://github.com/heavenchenggong/stackchan-xiaozhi-firmware/releases/latest) 下载预编译固件（`merged-binary.bin` 一键烧录，或各分区 bin 分别烧；Release 附件永久有效）。
 
 完整烧录（含 NVS 抹除，第一次烧推荐）：
 ```bash
