@@ -197,6 +197,26 @@ tail -f /tmp/stackchan-bridge.err
 
 ---
 
+## Mac 主动推送：让机器人自己开口（进阶）
+
+上面是**云 → Mac**的 PULL（人先说话，小智 LLM 调工具）。还有一个**反方向**的能力：`bridge/stackchan_push.py` 让 **Mac 上任何 agent/脚本主动**（不用人先开口）让 Stack-chan 说任意文本、换表情、点头——走**局域网**直连设备，**不经过云，设备空闲也能说**。
+
+```bash
+cd bridge
+./.venv/bin/python stackchan_push.py doctor                 # 自检 say / ffmpeg / 配置
+./.venv/bin/python stackchan_push.py speak "跑完了，Sharpe 1.8" --face happy --gesture nod
+```
+
+典型用法：某个后台 job 跑完，完成回调直接 `speak("跑完了…")`，机器人自己念出来——把现有"写 outbox 等人问『查到了吗』"的 PULL 流程升级成 PUSH。
+
+- 音频在 Mac 上用 `say` 合成 → `ffmpeg` 转 16kHz 单声道 60ms Opus/OGG → 起临时 HTTP 服务 → 发一条 MCP 让设备 `self.play_audio_url` 拉取播放。
+- 需设备刷入 LAN 控制固件（scout 报告 Path A2，**与本能力并行开发**）；固件未就位时 `speak` 会清晰告警但不崩。
+- 配置（`SC_DEVICE_IP` / `SC_TOKEN` / `SC_MAC_IP` …）走 `bridge/.env`，见 `.env.example`。
+
+📖 **详细契约、配置、验证见 [docs/mac-push.md](docs/mac-push.md)。**
+
+---
+
 ## 推荐角色介绍 (Prompt)
 
 xiaozhi.me 控制台 → 智能体配置 → 角色介绍 里贴这段（替换"派蒙"为你想要的名字）：
