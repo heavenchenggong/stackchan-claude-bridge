@@ -232,6 +232,18 @@ xiaozhi.me 控制台 → 智能体配置 → 角色介绍 里贴这段（替换"
 
 ---
 
+## WorkBuddy 大脑版（server_workbuddy.py）
+
+不想让机器人背后跑 Claude Code？同一套 bridge 可以把大脑换成 WorkBuddy 桌面智能体（CodeBuddy 引擎）：
+
+- 引擎换成 WorkBuddy App 自带的 `codebuddy -p` 非交互 CLI，四个工具对应改名为 `workbuddy` / `workbuddy_quick` / `workbuddy_background` / `workbuddy_check_results`
+- 每次调用动态注入 `~/.workbuddy/` 的 IDENTITY / USER / MEMORY 作为 system prompt —— 机器人和你的 WorkBuddy 共享同一份人格与记忆（MEMORY.md 如果是三方软链共享，Claude 那边的记忆也一起带上）
+- 默认挂载 WorkBuddy 的 connector-proxy MCP（邮件 / 飞书 / SAP wiki / Outlook 等聚合代理），机器人借此能查邮件查 wiki；App 没开时连接器不可用但引擎照常回答（`WORKBUDDY_MCP_URL=` 置空可关闭）
+
+部署方式与 Claude 版完全一致：`mcp_config.json` 把 server 指到 `server_workbuddy.py`，launchd plist 只改 WorkingDirectory。xiaozhi.me 控制台的角色介绍里把 `claude_code*` 工具名对应换成 `workbuddy*` 即可。
+
+---
+
 ## 致谢
 
 - 上游固件 [78/xiaozhi-esp32](https://github.com/78/xiaozhi-esp32) — 小智 AI 项目本体
