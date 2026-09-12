@@ -73,6 +73,17 @@ logger = logging.getLogger("workbuddy-bridge")
 mcp = FastMCP("workbuddy-bridge")
 
 
+def _node_bin_dir() -> str | None:
+    """launchd 环境 PATH 里没有 node（CLI 是 #!/usr/bin/env node），需显式定位。
+    优先 WorkBuddy 自带 node（App 升级换版本目录也能跟上），其次 homebrew。"""
+    versions_dir = Path.home() / ".workbuddy/binaries/node/versions"
+    bundled = sorted(versions_dir.glob("*/bin")) if versions_dir.exists() else []
+    for d in [*bundled, Path("/opt/homebrew/bin"), Path("/usr/local/bin")]:
+        if (d / "node").is_file():
+            return str(d)
+    return None
+
+
 def _persona_prompt() -> str:
     """拼装 ~/.workbuddy 的人格文件作为 system prompt 追加。文件缺失就跳过。"""
     parts = []
@@ -123,6 +134,12 @@ async def _run_workbuddy(task: str, timeout: int) -> tuple[bool, str]:
     """跑 codebuddy -p，返回 (成功, 输出)。"""
     persona = _persona_prompt()
     cmd = _build_cmd(task, persona)
+    env = {**os.environ}
+    node_dir = _node_bin_dir()
+    if node_dir:
+        env["PATH"] = node_dir + os.pathsep + env.get("PATH", "")
+    else:
+        logger.warning("node not found in fallback paths; codebuddy CLI will likely fail (exit 127)")
     logger.info("workbuddy run: %s (persona %d chars)", task[:50], len(persona))
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -130,7 +147,7 @@ async def _run_workbuddy(task: str, timeout: int) -> tuple[bool, str]:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=WORKDIR,
-            env={**os.environ},
+            env=env,
         )
         try:
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
