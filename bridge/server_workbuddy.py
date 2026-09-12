@@ -52,6 +52,13 @@ WORKBUDDY_HOME = Path(os.environ.get("WORKBUDDY_HOME", str(Path.home() / ".workb
 # 注入的人格文件：IDENTITY（我是谁）/ USER（用户是谁）/ MEMORY（共享记忆索引）
 PERSONA_FILES = ["IDENTITY.md", "USER.md", "MEMORY.md"]
 WORKBUDDY_MCP_URL = os.environ.get("WORKBUDDY_MCP_URL", "http://127.0.0.1:61400/mcp")
+# 模型路由是生死线：默认 auto 会落到移动云 cmcc 体验池（算力豆=0 必失败），
+# hy4-preview 是 WorkBuddy App 自己用的路由（实测可用）。App 升级换了模型名就改这里。
+WORKBUDDY_MODEL = os.environ.get("WORKBUDDY_MODEL", "hy4-preview")
+# -p 模式下无人批权限：写文章/跑 skill 需要 Bash+Write 全开，默认全放行（个人机器）
+WORKBUDDY_PERMISSION = os.environ.get("WORKBUDDY_PERMISSION", "bypassPermissions")
+# 显式授权引擎访问的目录（wiki 在 WORKDIR 之外，不挂的话 Read 不到）
+WORKBUDDY_EXTRA_DIRS = os.environ.get("WORKBUDDY_EXTRA_DIRS", "/Users/I501579/wiki")
 
 # 简单查询超时 120s（引擎启动 + memory 检索能跑这么久），复杂任务（写文章）允许 5 分钟
 DEFAULT_TIMEOUT_SECS = 120
@@ -108,10 +115,14 @@ def _build_cmd(task: str, persona: str) -> list[str]:
     cmd = [
         WORKBUDDY_BIN,
         "-p",
-        # 与 Claude 版同姿态：放开文件编辑，危险操作走各工具自己的授权体系
         "--permission-mode",
-        "acceptEdits",
+        WORKBUDDY_PERMISSION,
     ]
+    if WORKBUDDY_MODEL:
+        cmd += ["--model", WORKBUDDY_MODEL]
+    extra_dirs = [d for d in WORKBUDDY_EXTRA_DIRS.split(":") if d.strip()]
+    if extra_dirs:
+        cmd += ["--add-dir", *extra_dirs]
     if persona:
         cmd += ["--append-system-prompt", persona]
     if WORKBUDDY_MCP_URL:
