@@ -144,6 +144,7 @@ async def _run_workbuddy(task: str, timeout: int) -> tuple[bool, str]:
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
+            stdin=asyncio.subprocess.DEVNULL,  # 绝不继承 MCP server 的 stdin（会被引擎偷读/搞挂 stdio）
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=WORKDIR,
@@ -166,6 +167,13 @@ async def _run_workbuddy(task: str, timeout: int) -> tuple[bool, str]:
         # print 模式有时会带 hook 报错前缀，过滤掉
         if "SessionEnd hook" in text:
             text = text.split("SessionEnd hook")[0].strip()
+        if not text:
+            # codebuddy 后端报错（如算力豆用完）时 exit 0 + stdout 空 + 真相在 stderr，
+            # 必须当失败处理，否则机器人会念"✅"加空白
+            err = (stderr or b"").decode(errors="replace").strip()
+            return False, f"workbuddy 引擎没返回内容（退出码 {proc.returncode}）" + (
+                f"，引擎消息: {err[-300:]}" if err else ""
+            )
         return True, text
     except Exception as e:
         logger.exception("workbuddy run failed")
